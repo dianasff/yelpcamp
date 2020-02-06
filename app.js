@@ -1,35 +1,50 @@
 const express= require('express');
 const app= express();
 const bodyParser=require("body-parser");
+const mongoose=require("mongoose");
 
-const camps = [
-		{name: 'uno', image: "https://images.unsplash.com/photo-1475483768296-6163e08872a1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"},
-		{name: 'dos', image: "https://images.unsplash.com/photo-1497906539264-eb74442e37a9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"},
-		{name: 'tres', image: "https://images.unsplash.com/photo-1492648272180-61e45a8d98a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"}
-];
-
+mongoose.connect("mongodb://localhost/veggie_tasty")
 app.use(bodyParser.urlencoded({extended:true}));
-
-
 app.set('view engine','ejs');
+//schema setup
+var recipeSchema = new mongoose.Schema({
+	name:String,
+	image:String
+})
+ var recipe= mongoose.model("recipe", recipeSchema);
+
+
+
 app.get('/', function(req,res){
 	res.render("landing");
 })
 
-app.get('/campgrounds', function(req,res){
+app.get('/recipes', function(req,res){
+	recipe.find({}, function(err, allrecipes){
+		if(err){
+			console.log(err);
+		}else {
+			res.render("recipes",{recipes:allrecipes});
+		}
+	});
 	
-	res.render('campgrounds',{camps:camps})
 });
 
-app.post('/campgrounds', function(req,res){
+app.post('/recipes', function(req,res){
 	let name= req.body.name;
 	let image= req.body.image;
-	let newCampground ={name:name , image:image}
-	camps.push(newCampground);
-	res.redirect('/campgrounds')
-
+	let newrecipe ={name:name , image:image}
+	recipe.create(newrecipe, function(err, newlyCreated){
+	if(err){
+		console.log(err);
+	}else{
+		res.redirect('/recipes');
+		
+	}
+	});
+	
 });
-app.get('/campgrounds/new', function(req,res){
+app.get('/recipes/new', function(req,res){
 	res.render('new')
 
 });
